@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>脂肪肝風險自評</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --liver: #C8571B;
+    --liver-light: #F2E0D5;
+    --warn: #E8831A;
+    --safe: #4A7C6A;
+    --safe-light: #D6EAE3;
+    --bg: #FAF7F4;
+    --ink: #1E1A17;
+    --ink-soft: #5C4F44;
+    --divider: #E2D8CF;
+    --white: #FFFFFF;
+  }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0 0 48px;
+  }
+
+  /* Header */
+  .header {
+    background: var(--liver);
+    color: var(--white);
+    padding: 28px 24px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    right: -20px; bottom: -30px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 0.16em; opacity: 0.75; margin-bottom: 8px; }
+  .header-title { font-family: 'Noto Serif TC', serif; font-size: 26px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+  .header-sub { font-size: 13px; opacity: 0.85; line-height: 1.6; }
+
+  /* Progress */
+  .progress-wrap { height: 4px; background: var(--divider); position: sticky; top: 0; z-index: 10; }
+  .progress-fill { height: 100%; width: 0%; background: var(--liver); transition: width 0.3s ease; }
+
+  /* Section */
+  .section { margin: 20px 16px 0; background: var(--white); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+  .section-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--divider); }
+  .section-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+  .badge-base { background: var(--safe-light); color: var(--safe); }
+  .badge-a { background: var(--liver-light); color: var(--liver); }
+  .badge-b { background: #FFF3DC; color: #A05E00; }
+  .section-title { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .section-hint { font-size: 11px; color: var(--ink-soft); padding: 8px 16px 0; line-height: 1.6; }
+
+  /* Base fields */
+  .base-grid { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 16px; }
+  .field-label { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 8px; display: block; }
+  .seg-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .seg-btn { flex: 1; min-width: 58px; padding: 9px 6px; border: 1.5px solid var(--divider); border-radius: 9px; background: var(--white); font-size: 13px; font-family: inherit; color: var(--ink); cursor: pointer; transition: all 0.15s; text-align: center; }
+  .seg-btn.active { border-color: var(--liver); background: var(--liver-light); color: var(--liver); font-weight: 700; }
+  .num-row { display: flex; gap: 12px; }
+  .num-field { flex: 1; }
+  .num-input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--divider); border-radius: 9px; font-size: 15px; font-family: inherit; color: var(--ink); background: var(--white); }
+  .num-input:focus { outline: none; border-color: var(--liver); }
+  .num-unit { font-size: 11px; color: var(--ink-soft); margin-top: 4px; display: block; }
+
+  /* Checklist */
+  .check-list { padding: 8px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .check-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 10px; border: 1.5px solid var(--divider); cursor: pointer; transition: all 0.18s; -webkit-tap-highlight-color: transparent; user-select: none; }
+  .check-item.checked { border-color: var(--liver); background: var(--liver-light); }
+  .check-item.checked-b { border-color: var(--warn); background: #FFF5E6; }
+  .check-item.none-item { border-style: dashed; }
+  .check-item.checked.none-item, .check-item.checked-b.none-item { border-style: solid; border-color: var(--safe); background: var(--safe-light); }
+  .check-box { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--divider); background: var(--white); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s; }
+  .check-item.checked .check-box { background: var(--liver); border-color: var(--liver); }
+  .check-item.checked-b .check-box { background: var(--warn); border-color: var(--warn); }
+  .check-item.checked.none-item .check-box, .check-item.checked-b.none-item .check-box { background: var(--safe); border-color: var(--safe); }
+  .check-box svg { display: none; }
+  .check-item.checked .check-box svg, .check-item.checked-b .check-box svg { display: block; }
+  .check-label { font-size: 14px; color: var(--ink); line-height: 1.45; flex: 1; }
+  .check-sub { display: block; font-size: 11px; color: var(--ink-soft); margin-top: 1px; }
+
+  /* Result */
+  .result-card { margin: 20px 16px 0; border-radius: 14px; padding: 22px 20px; transition: all 0.3s; border: 1.5px solid var(--divider); background: var(--white); }
+  .result-card.default { background: var(--safe-light); border-color: #B5D9CE; }
+  .result-card.green { background: var(--safe-light); border-color: var(--safe); }
+  .result-card.yellow { background: #FFF8E6; border-color: #D8A41A; }
+  .result-card.orange { background: var(--liver-light); border-color: var(--liver); }
+  .result-card.red { background: #FDEAEA; border-color: #B01010; }
+  .result-light { font-size: 28px; margin-bottom: 8px; }
+  .result-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 5px; }
+  .result-title { font-family: 'Noto Serif TC', serif; font-size: 19px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; color: var(--ink); }
+  .result-body { font-size: 13.5px; line-height: 1.75; color: var(--ink-soft); }
+
+  /* CTA equal buttons */
+  .cta-row { display: flex; gap: 10px; margin-top: 16px; }
+  .cta-btn { flex: 1; padding: 13px 10px; border-radius: 9px; font-size: 13px; font-weight: 700; text-decoration: none; text-align: center; cursor: pointer; border: none; line-height: 1.4; transition: opacity 0.15s; display: flex; align-items: center; justify-content: center; }
+  .cta-btn:active { opacity: 0.85; }
+  .cta-form { background: var(--liver); color: var(--white); }
+  .cta-line { background: #06C755; color: var(--white); }
+
+  /* Info */
+  .info-strip { margin: 16px 16px 0; padding: 14px 16px; background: var(--white); border-radius: 12px; display: flex; gap: 12px; align-items: flex-start; }
+  .info-dot { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .info-text { font-size: 12px; color: var(--ink-soft); line-height: 1.65; }
+  .info-text strong { color: var(--ink); }
+
+  .share-box { margin: 18px 16px 0; padding: 18px 16px; background: var(--white); border-radius: 14px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); text-align: center; }
+  .share-text { font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.6; margin-bottom: 14px; }
+  .share-text span { font-size: 12px; font-weight: 400; color: var(--ink-soft); }
+  .share-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px; background: #06C755; color: var(--white); border-radius: 9px; font-size: 14px; font-weight: 700; text-decoration: none; transition: opacity 0.15s; }
+  .share-btn:active { opacity: 0.85; }
+  .reset-btn { display: block; margin: 16px 16px 0; width: calc(100% - 32px); padding: 12px; background: none; border: 1.5px solid var(--divider); border-radius: 10px; font-size: 13px; color: var(--ink-soft); font-family: inherit; cursor: pointer; }
+  .footer { margin: 20px 16px 0; font-size: 11px; color: #A89E95; line-height: 1.7; text-align: center; }
+  .privacy-note { margin: 14px 16px 0; font-size: 10.5px; color: #B3AAA1; line-height: 1.6; text-align: center; padding: 0 8px; }
+</style>
+</head>
+<body>
+
+<div class="progress-wrap"><div class="progress-fill" id="progress"></div></div>
+
+<div class="header">
+  <div class="header-eyebrow">喬登健康管理中心 · 營養師自評工具</div>
+  <div class="header-title">你的肝，還好嗎？</div>
+  <div class="header-sub">代謝性脂肪肝（MASLD）風險自我評估<br>全程約 1 分鐘，依序填寫即可</div>
+</div>
+
+<!-- 基本資料 -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-badge badge-base">基本資料</span>
+    <span class="section-title">先讓我們認識你</span>
+  </div>
+  <div class="base-grid">
+    <div>
+      <label class="field-label">生理性別</label>
+      <div class="seg-group" data-field="gender">
+        <button class="seg-btn" onclick="pickSeg(this,'gender')">男</button>
+        <button class="seg-btn" onclick="pickSeg(this,'gender')">女</button>
+        <button class="seg-btn" onclick="pickSeg(this,'gender')">其他</button>
+      </div>
+    </div>
+    <div>
+      <label class="field-label">年齡區間</label>
+      <div class="seg-group" data-field="age">
+        <button class="seg-btn" onclick="pickSeg(this,'age')">20–29</button>
+        <button class="seg-btn" onclick="pickSeg(this,'age')">30–39</button>
+        <button class="seg-btn" onclick="pickSeg(this,'age')">40–49</button>
+        <button class="seg-btn" onclick="pickSeg(this,'age')">50–59</button>
+        <button class="seg-btn" onclick="pickSeg(this,'age')">60+</button>
+      </div>
+    </div>
+    <div class="num-row">
+      <div class="num-field">
+        <label class="field-label">身高</label>
+        <input class="num-input" type="number" inputmode="numeric" id="height" placeholder="例：165" oninput="updateProgress()">
+        <span class="num-unit">公分 cm</span>
+      </div>
+      <div class="num-field">
+        <label class="field-label">體重</label>
+        <input class="num-input" type="number" inputmode="numeric" id="weight" placeholder="例：60" oninput="updateProgress()">
+        <span class="num-unit">公斤 kg</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 區塊 A -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-badge badge-a">區塊 A</span>
+    <span class="section-title">身體最近有這些感覺嗎？</span>
+  </div>
+  <p class="section-hint">主觀感受，有就勾，不需要有數字</p>
+  <div class="check-list" id="list-a">
+    <div class="check-item" data-section="a" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">容易疲倦，休息後也沒什麼改善</span>
+    </div>
+    <div class="check-item" data-section="a" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">右上腹有沉重或滿脹感</span>
+    </div>
+    <div class="check-item" data-section="a" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">食慾差或消化常感不適</span>
+    </div>
+    <div class="check-item" data-section="a" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">近一年體重持續上升，或腰圍變寬</span>
+    </div>
+    <div class="check-item" data-section="a" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">飯後特別想睡，精神不集中</span>
+    </div>
+    <div class="check-item" data-section="a" data-bodyfat="1" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">體脂偏高（尚未達肥胖標準）
+        <span class="check-sub">男性 20–25%・女性 25–30%，即使體重正常也要留意</span>
+      </span>
+    </div>
+    <div class="check-item none-item" data-section="a" data-none="1" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">以上皆無</span>
+    </div>
+  </div>
+</div>
+
+<!-- 區塊 B -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-badge badge-b">區塊 B</span>
+    <span class="section-title">最近健檢報告，有這些嗎？</span>
+  </div>
+  <p class="section-hint">有健檢數字的話對照填，沒有也可以用目測或印象勾選</p>
+  <div class="check-list" id="list-b">
+    <div class="check-item" data-section="b" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">腰圍偏大 / BMI 偏高 / 體脂偏高
+        <span class="check-sub">符合任一即算：腰圍男 &gt; 90 cm・女 &gt; 80 cm｜BMI ≥ 23｜體脂率男 &gt; 25%・女 &gt; 30%</span>
+      </span>
+    </div>
+    <div class="check-item" data-section="b" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">血壓偏高
+        <span class="check-sub">收縮壓 ≥ 130 mmHg 或舒張壓 ≥ 85 mmHg，或正在服用降壓藥</span>
+      </span>
+    </div>
+    <div class="check-item" data-section="b" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">血糖偏高 / 已有糖尿病
+        <span class="check-sub">空腹血糖 ≥ 100 mg/dL，或糖化血色素（HbA1c）≥ 5.7%，或已診斷第 2 型糖尿病</span>
+      </span>
+    </div>
+    <div class="check-item" data-section="b" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">三酸甘油酯偏高
+        <span class="check-sub">TG ≥ 150 mg/dL，或正在服用降脂藥</span>
+      </span>
+    </div>
+    <div class="check-item" data-section="b" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">好的膽固醇（HDL-C）偏低
+        <span class="check-sub">男性 &lt; 40 mg/dL，女性 &lt; 50 mg/dL</span>
+      </span>
+    </div>
+    <div class="check-item" data-section="b" data-fatty="1" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">超音波曾提示脂肪肝 / 內臟脂肪指數偏高
+        <span class="check-sub">健檢報告有「脂肪肝」字樣，或體脂計內臟脂肪 ≥ 10</span>
+      </span>
+    </div>
+    <div class="check-item none-item" data-section="b" data-none="1" onclick="toggle(this)">
+      <div class="check-box"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="check-label">以上皆無</span>
+    </div>
+  </div>
+</div>
+
+<!-- Result -->
+<div class="result-card default" id="result-card">
+  <div class="result-light">🌿</div>
+  <div class="result-label" style="color:var(--safe);">評估結果</div>
+  <div class="result-title">完成上方填寫，看看你的風險吧</div>
+  <div class="result-body">依序完成基本資料與兩個區塊的勾選，這裡會出現個人化的風險等級與建議。</div>
+</div>
+
+<!-- Info -->
+<div class="info-strip">
+  <div class="info-dot">💡</div>
+  <div class="info-text">
+    <strong>什麼是代謝性脂肪肝（MASLD）？</strong><br>
+    肝臟積累過多脂肪，與肥胖、血糖、血脂等代謝問題密切相關。早期幾乎無症狀，但長期下去可能進展為肝炎、肝硬化，並增加心血管疾病風險。<strong>全球約每 3 位成人就有 1 位</strong>受到影響，及早留意是最有效的方式。
+  </div>
+</div>
+
+<!-- 轉傳誘因 -->
+<div class="share-box">
+  <div class="share-text">💛 把這份評估傳給你關心的家人朋友<br><span>早一點發現，多一分健康</span></div>
+  <a class="share-btn" href="https://line.me/R/share?text=%E4%BD%A0%E7%9A%84%E8%82%9D%EF%BC%8C%E9%82%84%E5%A5%BD%E5%97%8E%EF%BC%9F%201%20%E5%88%86%E9%90%98%E8%87%AA%E6%88%91%E8%A9%95%E4%BC%B0%E4%BB%A3%E8%AC%9D%E6%80%A7%E8%84%82%E8%82%AA%E8%82%9D%E9%A2%A8%E9%9A%AA%20%F0%9F%91%89%20https%3A%2F%2Freurl.cc%2Fqplp30" target="_blank" rel="noopener">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 5.69 2 10.23c0 4.07 3.55 7.48 8.35 8.12.32.07.77.21.88.49.1.25.07.64.03.89l-.14.85c-.04.25-.2.99.87.54 1.07-.45 5.77-3.4 7.87-5.82C21.4 13.67 22 12.01 22 10.23 22 5.69 17.52 2 12 2z"/></svg>
+    分享給 LINE 好友
+  </a>
+</div>
+
+<button class="reset-btn" onclick="resetAll()">↺ 重新填寫</button>
+
+<div class="privacy-note">為提升衛教品質，本評估的匿名統計結果將用於分析，不含任何個人身分資訊。</div>
+
+<div class="footer">
+  本工具為自我衛教用途，不構成醫療診斷。<br>
+  如有疑慮，請諮詢喬登健康管理中心的營養師或您的醫師。
+</div>
+
+<script>
+  // ===== 後台串接接口：建立 Google 試算表 + Apps Script 後，把網址貼進 SHEET_URL 即可啟用 =====
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycby_emfCndKWLU0-BeOmaY-wQYqnk8jM4MwxVjNlEPNeZOngVRiif-m8USdWoU8ZCqm1/exec';
+  const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfMK69kf0LsUf2Ze6pe1_4oigdJWdp7z0-jWuoJSXlus_aa_A/viewform?usp=publish-editor';
+  const LINE_URL = 'https://line.me/ti/p/vZybCX8BEf';
+
+  const state = { gender: '', age: '' };
+  let lastSentLevel = null;
+
+  function pickSeg(btn, field) {
+    const group = btn.closest('.seg-group');
+    group.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state[field] = btn.textContent.trim();
+    updateProgress();
+    updateResult();
+  }
+
+  function toggle(el) {
+    const section = el.dataset.section;
+    const cls = section === 'a' ? 'checked' : 'checked-b';
+    const list = el.closest('.check-list');
+    const isNone = el.dataset.none === '1';
+    const willCheck = !el.classList.contains(cls);
+
+    if (isNone && willCheck) {
+      list.querySelectorAll('.check-item').forEach(x => x.classList.remove(cls));
+      el.classList.add(cls);
+    } else if (!isNone && willCheck) {
+      const noneItem = list.querySelector('[data-none="1"]');
+      if (noneItem) noneItem.classList.remove(cls);
+      el.classList.add(cls);
+    } else {
+      el.classList.toggle(cls);
+    }
+    updateProgress();
+    updateResult();
+  }
+
+  function updateProgress() {
+    let done = 0;
+    const total = 5;
+    if (state.gender) done++;
+    if (state.age) done++;
+    if (document.getElementById('height').value) done++;
+    if (document.getElementById('weight').value) done++;
+    if (document.querySelectorAll('.check-item.checked, .check-item.checked-b').length > 0) done++;
+    document.getElementById('progress').style.width = Math.min(100, (done / total) * 100) + '%';
+  }
+
+  function updateResult() {
+    const aItems = [...document.querySelectorAll('#list-a .check-item:not([data-none])')];
+    const bItems = [...document.querySelectorAll('#list-b .check-item:not([data-none])')];
+    const aCount = aItems.filter(x => x.classList.contains('checked')).length;
+    const bCount = bItems.filter(x => x.classList.contains('checked-b')).length;
+
+    const fattyItem = document.querySelector('#list-b [data-fatty="1"]');
+    const hasFattyLiver = fattyItem && fattyItem.classList.contains('checked-b');
+    const otherBCount = bItems.filter(x => x.classList.contains('checked-b') && x.dataset.fatty !== '1').length;
+    const isMASLD = hasFattyLiver && otherBCount >= 1;
+
+    // A區體脂偏高偵測
+    const bodyfatItem = document.querySelector('#list-a [data-bodyfat="1"]');
+    const hasHighBodyfat = bodyfatItem && bodyfatItem.classList.contains('checked');
+
+    const aNone = document.querySelector('#list-a [data-none="1"]').classList.contains('checked');
+    const bNone = document.querySelector('#list-b [data-none="1"]').classList.contains('checked-b');
+    const anyInput = state.gender || state.age || aCount || bCount || aNone || bNone;
+
+    const card = document.getElementById('result-card');
+
+    // 四層等級：🔴 脂肪肝+任一代謝指標 / 🟠 A4-5項或B≥1 / 🟡 A2-3項 / 🟢 A0-1項
+    let level;
+    if (!anyInput) level = 'idle';
+    else if (isMASLD) level = 'red';
+    else if (bCount >= 1 || aCount >= 4) level = 'orange';
+    else if (aCount >= 2) level = 'yellow';
+    else level = 'green';
+
+    const configs = {
+      idle: { cssClass:'default', light:'🌿', label:'評估結果', labelColor:'var(--safe)',
+        title:'完成上方填寫，看看你的風險吧',
+        body:'依序完成基本資料與兩個區塊的勾選，這裡會出現個人化的風險等級與建議。', showCta:false },
+      green: { cssClass:'green', light:'🟢', label:'低風險', labelColor:'var(--safe)',
+        title:'目前風險偏低',
+        body:'目前狀況不錯！不過代謝健康會隨生活型態慢慢變化，現在正是建立基礎的好時機——維持現在的生活型態，並開始留意體重與體脂的變化，每年定期追蹤代謝數字。', showCta:true },
+      yellow: { cssClass:'yellow', light:'🟡', label:'留意', labelColor:'#A07000',
+        title:'身體已在發出訊號',
+        body:'身體的疲倦感常是最早的提醒。這個階段還很有調整空間，而每個人適合的方向不太一樣——想知道怎麼開始，營養師可以幫你看方向。', showCta:true },
+      orange: { cssClass:'orange', light:'🟠', label:'警示', labelColor:'var(--liver)',
+        title:'代謝指標出現異常',
+        body:'你的代謝指標已經亮燈了。這個階段及早從生活與飲食型態著手，能有效改善——但方法因人而異，建議讓營養師為你評估適合的方向。', showCta:true },
+      red: { cssClass:'red', light:'🔴', label:'高風險・建議積極介入', labelColor:'#B01010',
+        title:'可能已符合代謝性脂肪肝（MASLD）定義',
+        body:'不用擔心，前期代謝性脂肪肝是可以逆轉的——每個人代謝性問題因人而異。越早開始，逆轉的機會越大，建議盡快與營養師討論。', showCta:true }
+    };
+
+    const cfg = configs[level];
+    card.className = 'result-card ' + cfg.cssClass;
+
+    // 動態追加體脂建議（綠/黃/橘等級且勾選體脂偏高時）
+    let bodyText = cfg.body;
+    if (hasHighBodyfat && ['green','yellow','orange'].includes(level)) {
+      bodyText += '<br><br>你提到體脂偏高——即使體重正常，體脂過高仍會增加脂肪肝風險，這點值得留意。';
+    }
+
+    const ctaHtml = cfg.showCta ? `
+      <div class="cta-row">
+        <a class="cta-btn cta-form" href="${FORM_URL}" target="_blank" rel="noopener">洽詢喬登營養師 →</a>
+        <a class="cta-btn cta-line" href="${LINE_URL}" target="_blank" rel="noopener">加 LINE，告訴我你的評估結果 →</a>
+      </div>` : '';
+
+    card.innerHTML = `
+      <div class="result-light">${cfg.light}</div>
+      <div class="result-label" style="color:${cfg.labelColor};">${cfg.label}</div>
+      <div class="result-title">${cfg.title}</div>
+      <div class="result-body">${bodyText}</div>
+      ${ctaHtml}`;
+
+    if (level !== 'idle' && level !== lastSentLevel) {
+      // 基本資料填齊才送出，避免綠燈在半填狀態就送出不完整資料
+      const baseComplete = state.gender && state.age &&
+        document.getElementById('height').value && document.getElementById('weight').value;
+      if (baseComplete) {
+        lastSentLevel = level;
+        sendToBackend({
+        level,
+        gender: state.gender,
+        age: state.age,
+        height: document.getElementById('height').value,
+        weight: document.getElementById('weight').value,
+        symptomsA: aItems.filter(x => x.classList.contains('checked')).map(x => x.querySelector('.check-label').childNodes[0].textContent.trim()),
+        metricsB: bItems.filter(x => x.classList.contains('checked-b')).map(x => x.querySelector('.check-label').childNodes[0].textContent.trim()),
+        aNone, bNone
+      });
+      }
+    }
+  }
+
+  function sendToBackend(data) {
+    if (!SHEET_URL) return;
+    try {
+      fetch(SHEET_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, time: new Date().toISOString() })
+      });
+    } catch (e) {}
+  }
+
+  function resetAll() {
+    document.querySelectorAll('.check-item').forEach(el => el.classList.remove('checked', 'checked-b'));
+    document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('height').value = '';
+    document.getElementById('weight').value = '';
+    state.gender = ''; state.age = '';
+    lastSentLevel = null;
+    updateProgress();
+    updateResult();
+  }
+</script>
+</body>
+</html>
